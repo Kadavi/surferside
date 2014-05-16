@@ -1,13 +1,13 @@
 <html>
 <head>
-    <title>Striping</title>
+    <title>Stripingy</title>
     <style>
         html,
         body {
             margin:0;
             padding:0;
             height:100%;
-            background: url("/greatbench/resources/images/parkbg.jpg") no-repeat center center fixed;
+            background: url("/resources/images/parkbg.jpg") no-repeat center center fixed;
             -webkit-background-size: 75% 100%;
             -moz-background-size: 75% 100%;
             -o-background-size: 75% 100%;

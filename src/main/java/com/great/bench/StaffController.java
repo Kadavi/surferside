@@ -10,9 +10,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -31,6 +29,12 @@ public class StaffController {
 
     @Autowired
     private MongoTemplate mango;
+
+    @RequestMapping(value = "/account", method = RequestMethod.GET)
+    public String account(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+
+        return "account";
+    }
 
     @RequestMapping(value = "/api/register", method = RequestMethod.POST)
     public ModelAndView register(HttpServletRequest req, HttpServletResponse resp) throws Exception {
@@ -70,7 +74,7 @@ public class StaffController {
 
         }
 
-        return new ModelAndView("hello", customerParams);
+        return new ModelAndView("old", customerParams);
 
     }
 
@@ -88,7 +92,7 @@ public class StaffController {
         Map<String, Object> response = new HashMap<String, Object>();
         response.put("status", subscription.getStatus() == "canceled" ? "success" : "error");
 
-        return new ModelAndView("hello", response);
+        return new ModelAndView("old", response);
 
     }
 
@@ -107,7 +111,7 @@ public class StaffController {
         Map<String, Object> response = new HashMap<String, Object>();
         response.put("status", subscription.getStatus() == "active" ? "success" : "error");
 
-        return new ModelAndView("hello", response);
+        return new ModelAndView("old", response);
 
     }
 
@@ -154,7 +158,7 @@ public class StaffController {
 
         }
 
-        return new ModelAndView("hello", response);
+        return new ModelAndView("old", response);
 
     }
 
@@ -175,7 +179,7 @@ public class StaffController {
 
         response.put("status", "success");
 
-        return new ModelAndView("hello", response);
+        return new ModelAndView("old", response);
 
     }
 
@@ -208,7 +212,7 @@ public class StaffController {
 
         }
 
-        return new ModelAndView("hello", response);
+        return new ModelAndView("old", response);
 
     }
 

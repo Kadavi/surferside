@@ -33,7 +33,6 @@
           <element id="library" level="project" name="Maven: io.netty:netty:3.9.0.Final" />
           <element id="library" level="project" name="Maven: javax.mail:mail:1.4.3" />
           <element id="library" level="project" name="Maven: javax.activation:activation:1.1" />
-          <element id="library" level="project" name="opencv-246" />
         </element>
       </element>
     </root>
