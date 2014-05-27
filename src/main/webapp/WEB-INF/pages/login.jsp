@@ -98,72 +98,29 @@
     <div class="">
     </div>
     <div class="container z-index">
-        <a id="logoutBtn" style="float: right; padding-right: 20px; padding-top: 5px;">Logout</a>
         <br>
         <br>
         <br>
         <div class="sixteen columns" data-scrollreveal="enter bottom and move 150px over 1s">
             <div class="contact-wrap">
-                <p><span>My Account</span></p>
-                <form name="ajax-form" id="ajax-form" action="mail-it.php" method="post">
+                <p>
+                    <span>Welcome Back</span>
+                </p>
+                <form name="ajax-form" id="ajax-form" action="/login" method="post">
                     <label for="email">
                         E-Mail:
                     </label>
-                    <input name="email" id="email" type="text" disabled value="${email}" />
-                    <label for="oldpassword">
-                        Current Password:
-                    </label>
-                    <input name="oldpassword" id="oldpassword" type="text" />
+                    <input name="email" id="email" type="text" />
                     <label for="password">
-                        New Password:
+                        Password:
                     </label>
                     <input name="password" id="password" type="text" />
-                    <label for="confirmPassword">
-                        Confirm Password:
-                    </label>
-                    <input name="confirmPassword" id="confirmPassword" type="text" />
                     <div id="button-con">
                         <button class="send_message" id="send">
-                            Change Password
+                            Sign In
                         </button>
                     </div>
-                    <div class="error">
-                    </div>
                 </form>
-                <div id="ajaxsuccess">
-                    Successfully sent!
-                </div>
-            </div>
-
-            <div class="contact-wrap">
-                <br>
-                <p><span>Payment Method</span></p>
-                <form name="ajax-form" id="ajax-form" action="" method="post">
-                    <label for="currentCard">
-                        Current Card:
-                    </label>
-                    <input name="currentCard" id="currentCard" type="text" disabled value="${cardLastFour}" />
-                    <label for="ccNumber">
-                        Add New Card:
-                    </label>
-                    <div style="width: 100%;">
-                        <input style="width: 44%;" id="ccNumber" data-stripe="number" size="20" maxlength="20" type="text" placeholder="Card Number"/>
-                        <input style="width: 11%;" id="ccMonth" data-stripe="exp-month" size="2" maxlength="2" type="text" placeholder="MM"/>
-                        <input style="width: 11%;" id="ccYear" data-stripe="exp-year" size="4" maxlength="4" type="text" placeholder="YYYY"/>
-                        <input style="width: 13%;" id="cvcNumber" data-stripe="cvc" size="4" maxlength="4" type="text" placeholder="CVC"/>
-                    </div>
-                    <div id="button-con">
-                        <button class="send_message" id="send">
-                            Change Cards
-                        </button>
-                    </div>
-                    <div class="error">
-                    </div>
-                </form>
-                <div id="ajaxsuccess">
-                    Successfully sent!
-                </div>
-                <br>
             </div>
         </div>
 
@@ -175,7 +132,6 @@
 </div>
 <br>
 <br>
-
 
 <div style="position: relative; left: 50%; float: left;">
     <!-- Download links -->
@@ -319,25 +275,14 @@
 </script>
 <script type="text/javascript" src="/resources/js/template.js">
 </script>
+<script type="text/javascript" src="https://js.stripe.com/v1/"></script>
 <script type="text/javascript">
+
     $(document).ready(function(){
 
-        $('#logoutBtn').click(function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-
-            var cookies = document.cookie.split(";");
-
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i];
-                var eqPos = cookie.indexOf("=");
-                var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            }
-
-            window.location.href = "http://localhost:8080/account";
-
-            return false;
+        $('.send_message').click(function(e) {
+            var $form = $(this).closest('form');
+            $form.submit();
         });
     });
 </script>

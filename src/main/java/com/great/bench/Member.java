@@ -45,6 +45,8 @@ public class Member {
 
     public static String randomSessionToken() {
 
+        bob.setLength(0);
+
         int length = 6;
         while (length-- != 0) {
 
@@ -58,6 +60,8 @@ public class Member {
     }
 
     public static String randomResetCode() {
+
+        bob.setLength(0);
 
         int length = 12;
         while (length-- != 0) {

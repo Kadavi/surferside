@@ -517,7 +517,8 @@
               &#xf051;
             </i>
           </p>
-          <form name="ajax-form" id="ajax-form" action="mail-it.php" method="post">
+
+          <form name="ajax-form" id="ajax-form" action="/api/register" method="post">
             <label for="email">
               E-Mail:
               <span class="error" id="err-email">
@@ -534,7 +535,7 @@
                 please enter password
               </span>
             </label>
-            <input name="password" id="password" type="text" placeholder="6-8 characters minimum" />
+            <input name="password" id="password" type="text" placeholder="6 characters minimum" />
             <label for="confirmPassword">
               Confirm Password:
               <span class="error" id="err-name">
@@ -549,35 +550,29 @@
               </span>
             </label>
             <div style="width: 100%;">
-              <input style="width: 44%;" name="ccNumber" id="ccNumber" type="text" placeholder="Card Number"/>
-              <input style="width: 11%;" name="month" id="ccMonth" type="text" placeholder="MM"/>
-              <input style="width: 11%;" name="year" id="ccYear" type="text" placeholder="YY"/>
-              <input style="width: 13%;" name="ccvNumber" id="ccvNumber" type="text" placeholder="CCV"/>
+              <input style="width: 44%;" id="ccNumber" data-stripe="number" size="20" maxlength="20" type="text" placeholder="Card Number"/>
+              <input style="width: 11%;" id="ccMonth" data-stripe="exp-month" size="2" maxlength="2" type="text" placeholder="MM"/>
+              <input style="width: 11%;" id="ccYear" data-stripe="exp-year" size="4" maxlength="4" type="text" placeholder="YYYY"/>
+              <input style="width: 13%;" id="cvcNumber" data-stripe="cvc" size="4" maxlength="4" type="text" placeholder="CVC"/>
             </div>
             <div id="button-con">
-              <button class="send_message" id="send">
+              <button type="submit" class="send_message" id="send">
                 Submit
               </button>
             </div>
-            
-            <div class="error text-align-center" id="err-form">
-              There was a problem validating the form please check!
-            </div>
-            <div class="error text-align-center" id="err-timedout">
-              The connection to the server timed out!
-            </div>
-            <div class="error" id="err-state">
-            </div>
+            <div class="error"></div>
           </form>
+
           <div id="ajaxsuccess">
-            Successfully sent!!
+            Successfully sent!
           </div>
           
         </div>
       </div>
       
     </div>
-    <a class="button-map close-map">
+      <br><br><br>
+    <a class="button-map close-map" style="display: none;">
       <span>
         Payment Options
       </span>
@@ -667,8 +662,7 @@
       </div>
       
       <div id="hide">
-        <img  src="/resources/images/close.png" alt="" />
-        
+        <img src="/resources/images/close.png" alt="" />
       </div>
     </div>
   </div>
@@ -723,6 +717,48 @@
   <script type="text/javascript" src="/resources/js/plugins.js">
   </script>
   <script type="text/javascript" src="/resources/js/template.js">
+  </script>
+  <script type="text/javascript" src="https://js.stripe.com/v1/"></script>
+  <script type="text/javascript">
+
+
+        $(document).ready(function(){
+            Stripe.setPublishableKey('pk_test_3pykNl2uOMSk8iluOnXIpLCV');
+
+            var stripeResponseHandler = function(status, response) {
+                var $form = $($('#ajax-form').get(0));
+
+                if (response.error) {
+                    // Show the errors on the form
+                    $form.find('.error').text(response.error.message);
+                    $form.find('button').prop('disabled', false);
+                } else {
+                    // token contains id, last4, and card type
+                    var token = response.id;
+                    // Insert the token into the form so it gets submitted to the server
+
+                    alert(token);
+                    $form.append($('<input type="hidden" name="stripeToken" />').val(token));
+                    // and re-submit
+                    $form.submit();
+                }
+            };
+
+            $('.send_message').click(function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                var $form = $(this).closest('form');
+
+                // Disable the submit button to prevent repeated clicks
+                $form.find('button').prop('disabled', true);
+
+                Stripe.card.createToken($form, stripeResponseHandler);
+
+                // Prevent the form from submitting with the default action
+                return false;
+            });
+        });
+
   </script>
   </body>
 </html>

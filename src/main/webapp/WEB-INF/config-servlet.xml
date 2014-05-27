@@ -18,13 +18,28 @@
         <property name="maxUploadSize" value="1048576000"/>
         <property name="defaultEncoding" value="UTF-8" />
     </bean>
+    <!--
+        <mongo:db-factory id="mongoDbFactory" host="ds053698.mongolab.com"
+                          port="53698"
+                          dbname="puddy"
+                          username="Kadavi"
+                          password="grantdawsoN1"/>
 
-    <mongo:mongo host="127.0.0.1" port="27017" />
-    <mongo:db-factory id="mongoDbFactory" dbname="testdb" />
+        <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+            <constructor-arg name="mongoDbFactory" ref="monFactory"/>
+        </bean>
+    -->
+
+    <mongo:db-factory id="mongoDbFactory" host="horace.1.mongolayer.com"
+                      port="10085"
+                      dbname="puddy"
+                      username="Kadavi"
+                      password="grantdawsoN1"/>
 
     <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
-        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
     </bean>
+
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
         <property name="host" value="smtp.gmail.com"/>

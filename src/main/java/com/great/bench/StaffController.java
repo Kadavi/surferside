@@ -2,6 +2,7 @@ package com.great.bench;
 
 import com.mongodb.WriteResult;
 import com.stripe.Stripe;
+import com.stripe.model.Card;
 import com.stripe.model.Customer;
 import com.stripe.model.Plan;
 import com.stripe.model.Subscription;
@@ -11,11 +12,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
@@ -31,17 +34,41 @@ public class StaffController {
     private MongoTemplate mango;
 
     @RequestMapping(value = "/account", method = RequestMethod.GET)
-    public String account(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+    public ModelAndView account(HttpServletRequest req, HttpServletResponse resp, @CookieValue(value = "sessionToken", defaultValue = "0") String sessionToken) throws Exception {
 
-        return "account";
+        Map<String, Object> response = new HashMap<String, Object>();
+
+
+        if (sessionToken.length() < 3) {
+            return new ModelAndView("login", response);
+        }
+
+        Member user = mango.findOne(new Query(Criteria.where("sessionToken").is(sessionToken)), Member.class);
+
+        if (user == null) {
+            return new ModelAndView("login", response);
+        }
+
+        Customer cu = Customer.retrieve(user.stripeId);
+        Card card = cu.getCards().retrieve(cu.getDefaultCard());
+
+
+        response.put("email", user.email);
+        response.put("cardLastFour", card.getLast4());
+
+        // create cookie and set it in response
+        Cookie cookie = new Cookie("sessionToken", sessionToken);
+        resp.addCookie(cookie);
+
+        return new ModelAndView("account", response);
     }
 
     @RequestMapping(value = "/api/register", method = RequestMethod.POST)
-    public ModelAndView register(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+    public String register(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 
-        String card = req.getParameter("card");
         String email = req.getParameter("email");
         String password = req.getParameter("password");
+        String stripeToken = req.getParameter("stripeToken");
 
         Map<String, Object> customerParams = new HashMap<String, Object>();
         customerParams.put("email", email);
@@ -50,7 +77,7 @@ public class StaffController {
 
         if (isEmailUnique) {
 
-            customerParams.put("card", card);
+            customerParams.put("card", stripeToken);
             customerParams.put("description", "Customer for the basic plan.");
 
             Customer newMember = Customer.create(customerParams);
@@ -62,20 +89,25 @@ public class StaffController {
 
                 newMember.createSubscription(subscriptionParams);
 
-                mango.insert(new Member(email, password, newMember.getId(), "stripe", null, null));
+                String sessionToken = Member.randomSessionToken();
 
+                mango.insert(new Member(email, password, newMember.getId(), "stripe", sessionToken, null));
+
+                Cookie cookie = new Cookie("sessionToken", sessionToken);
+                resp.addCookie(cookie);
             }
 
             customerParams.put("status", "success");
+
+            return "account";
 
         } else {
 
             customerParams.put("status", "error");
 
+            return "index";
+
         }
-
-        return new ModelAndView("old", customerParams);
-
     }
 
     @RequestMapping(value = "/api/deactivate", method = RequestMethod.POST)
@@ -92,7 +124,7 @@ public class StaffController {
         Map<String, Object> response = new HashMap<String, Object>();
         response.put("status", subscription.getStatus() == "canceled" ? "success" : "error");
 
-        return new ModelAndView("old", response);
+        return new ModelAndView("account", response);
 
     }
 
@@ -111,14 +143,38 @@ public class StaffController {
         Map<String, Object> response = new HashMap<String, Object>();
         response.put("status", subscription.getStatus() == "active" ? "success" : "error");
 
-        return new ModelAndView("old", response);
+        return new ModelAndView("account", response);
 
     }
 
     @RequestMapping(value = "/api/login", method = RequestMethod.POST)
     public
     @ResponseBody
-    String login(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+    String loginClient(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+
+        Member user = mango.findOne(new Query(Criteria.where("email").is(email).and("password").is(password)), Member.class);
+
+        if (user != null) {
+
+            Cookie cookie = new Cookie("sessionToken", user.sessionToken);
+            resp.addCookie(cookie);
+
+            return "SessionToken: " + user.sessionToken;
+
+        } else {
+
+            return "error";
+
+        }
+    }
+
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public ModelAndView loginWeb(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+
+        Map<String, Object> response = new HashMap<String, Object>();
 
         String email = req.getParameter("email");
         String password = req.getParameter("password");
@@ -128,14 +184,19 @@ public class StaffController {
                 Update.update("sessionToken", sessionToken), Member.class);
 
         if (mangoResult.getN() > 0) {
+            Member user = mango.findOne(new Query(Criteria.where("email").is(email)), Member.class);
 
-            return "SessionToken: " + sessionToken;
+            Customer cu = Customer.retrieve(user.stripeId);
+            Card card = cu.getCards().retrieve(cu.getDefaultCard());
 
-        } else {
+            Cookie cookie = new Cookie("sessionToken", sessionToken);
+            resp.addCookie(cookie);
 
-            return "error";
-
+            response.put("email", email);
+            response.put("cardLastFour", card.getLast4());
         }
+
+        return new ModelAndView("account", response);
     }
 
     @RequestMapping(value = "/api/logout", method = RequestMethod.POST)
@@ -158,7 +219,7 @@ public class StaffController {
 
         }
 
-        return new ModelAndView("old", response);
+        return new ModelAndView("account", response);
 
     }
 
@@ -179,7 +240,7 @@ public class StaffController {
 
         response.put("status", "success");
 
-        return new ModelAndView("old", response);
+        return new ModelAndView("account", response);
 
     }
 
@@ -212,7 +273,7 @@ public class StaffController {
 
         }
 
-        return new ModelAndView("old", response);
+        return new ModelAndView("account", response);
 
     }
 
