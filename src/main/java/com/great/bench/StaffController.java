@@ -52,9 +52,8 @@ public class StaffController {
         Customer cu = Customer.retrieve(user.stripeId);
         Card card = cu.getCards().retrieve(cu.getDefaultCard());
 
-
         response.put("email", user.email);
-        response.put("cardLastFour", card.getLast4());
+        response.put("cardLastFour", "(" + card.getType() + ") xx-" + card.getLast4() + " " + (card.getExpMonth().toString().length() <= 1 ? "0" + card.getExpMonth() : card.getExpMonth()) + "/" + card.getExpYear());
 
         // create cookie and set it in response
         Cookie cookie = new Cookie("sessionToken", sessionToken);
@@ -193,10 +192,12 @@ public class StaffController {
             resp.addCookie(cookie);
 
             response.put("email", email);
-            response.put("cardLastFour", card.getLast4());
+            response.put("cardLastFour", "(" + card.getType() + ") xx-" + card.getLast4() + " " + (card.getExpMonth().toString().length() <= 1 ? "0" + card.getExpMonth() : card.getExpMonth()) + "/" + card.getExpYear());
+
+            return new ModelAndView("account", response);
         }
 
-        return new ModelAndView("account", response);
+        return new ModelAndView("login", null);
     }
 
     @RequestMapping(value = "/api/logout", method = RequestMethod.POST)
@@ -244,27 +245,72 @@ public class StaffController {
 
     }
 
-    @RequestMapping(value = "/api/change", method = RequestMethod.POST)
-    public ModelAndView changePassword(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+    @RequestMapping(value = "/api/changepassword", method = RequestMethod.POST)
+    public ModelAndView changePassword(HttpServletRequest req, HttpServletResponse resp, @CookieValue(value = "sessionToken", defaultValue = "0") String sessionToken) throws Exception {
 
         Map<String, Object> response = new HashMap<String, Object>();
 
         String email = req.getParameter("email");
-        String code = req.getParameter("code");
-        String password = req.getParameter("newPassword");
+        String oldPassword = req.getParameter("oldPassword");
+        String newPassword = req.getParameter("password");
+        String confirmPassword = req.getParameter("confirmPassword");
 
-        Member member = mango.findOne(new Query(Criteria.where("email").is(email).and("resetCode").is(code)), Member.class);
+        Member member = mango.findOne(new Query(Criteria.where("email").is(email).and("sessionToken").is(sessionToken)), Member.class);
 
         try {
 
-            member.password = password;
-            member.sessionToken = Member.randomSessionToken();
-            member.resetCode = null;
+            if (member != null && (newPassword == confirmPassword)) {
+                member.password = confirmPassword;
+                mango.save(member);
 
+                Customer cu = Customer.retrieve(member.stripeId);
+                Card card = cu.getCards().retrieve(cu.getDefaultCard());
+
+                Cookie cookie = new Cookie("sessionToken", sessionToken);
+                resp.addCookie(cookie);
+
+                response.put("email", email);
+                response.put("cardLastFour", "(" + card.getType() + ") xx-" + card.getLast4() + " " + (card.getExpMonth().toString().length() <= 1 ? "0" + card.getExpMonth() : card.getExpMonth()) + "/" + card.getExpYear());
+            }
+
+        } catch (Exception e) {
+
+            response.put("status", "error");
+            e.printStackTrace();
+
+        }
+
+        return new ModelAndView("account", response);
+
+    }
+
+    @RequestMapping(value = "/api/changecard", method = RequestMethod.POST)
+    public ModelAndView changeCard(HttpServletRequest req,HttpServletResponse resp,
+                                   @CookieValue(value = "sessionToken", defaultValue = "0") String sessionToken) throws Exception {
+
+        Map<String, Object> response = new HashMap<String, Object>();
+
+        String email = req.getParameter("email");
+        String stripeToken = req.getParameter("stripeToken");
+
+        Member member = mango.findOne(new Query(Criteria.where("email").is(email).and("sessionToken").is(sessionToken)), Member.class);
+
+        try {
+
+            member.sessionToken = Member.randomSessionToken();
             mango.save(member);
 
-            response.put("sessionToken", member.sessionToken);
-            response.put("status", "success");
+            Cookie cookie = new Cookie("sessionToken", sessionToken);
+            resp.addCookie(cookie);
+
+            Customer cu = Customer.retrieve(member.stripeId);
+
+            cu.setDefaultCard(stripeToken);
+
+            Card card = cu.getCards().retrieve(cu.getDefaultCard());
+
+            response.put("email", email);
+            response.put("cardLastFour", "(" + card.getType() + ") xx-" + card.getLast4() + " " + (card.getExpMonth().toString().length() <= 1 ? "0" + card.getExpMonth() : card.getExpMonth()) + "/" + card.getExpYear());
 
         } catch (Exception e) {
 
@@ -279,7 +325,7 @@ public class StaffController {
 
     static {
 
-        Stripe.apiKey = "sk_test_cAefVlVMmXfcSKMZOKLhielX";
+        Stripe.apiKey = "sk_live_SIo727c3WJOAsTsqM2byQJGM";
 
         /* Making sure a 'basic' plan exists on Stripe if not already. */
         try {
@@ -289,7 +335,7 @@ public class StaffController {
         } catch (Exception e) {
 
             Map<String, Object> planParams = new HashMap<String, Object>();
-            planParams.put("amount", 200);
+            planParams.put("amount", 500);
             planParams.put("interval", "month");
             planParams.put("name", "Basic");
             planParams.put("currency", "usd");

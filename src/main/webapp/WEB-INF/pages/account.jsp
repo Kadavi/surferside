@@ -105,7 +105,7 @@
         <div class="sixteen columns" data-scrollreveal="enter bottom and move 150px over 1s">
             <div class="contact-wrap">
                 <p><span>My Account</span></p>
-                <form name="ajax-form" id="ajax-form" action="mail-it.php" method="post">
+                <form name="password-form" id="ajax-form" action="/api/changepassword" method="post">
                     <label for="email">
                         E-Mail:
                     </label>
@@ -113,7 +113,7 @@
                     <label for="oldpassword">
                         Current Password:
                     </label>
-                    <input name="oldpassword" id="oldpassword" type="text" />
+                    <input name="oldPassword" id="oldPassword" type="text" />
                     <label for="password">
                         New Password:
                     </label>
@@ -123,7 +123,7 @@
                     </label>
                     <input name="confirmPassword" id="confirmPassword" type="text" />
                     <div id="button-con">
-                        <button class="send_message" id="send">
+                        <button class="send_message" id="changePassword">
                             Change Password
                         </button>
                     </div>
@@ -138,7 +138,7 @@
             <div class="contact-wrap">
                 <br>
                 <p><span>Payment Method</span></p>
-                <form name="ajax-form" id="ajax-form" action="" method="post">
+                <form name="payment-form" id="ajax-form" action="/api/changecard" method="post">
                     <label for="currentCard">
                         Current Card:
                     </label>
@@ -152,8 +152,9 @@
                         <input style="width: 11%;" id="ccYear" data-stripe="exp-year" size="4" maxlength="4" type="text" placeholder="YYYY"/>
                         <input style="width: 13%;" id="cvcNumber" data-stripe="cvc" size="4" maxlength="4" type="text" placeholder="CVC"/>
                     </div>
+                    <input name="email" id="email" type="hidden" disabled value="${email}" />
                     <div id="button-con">
-                        <button class="send_message" id="send">
+                        <button class="send_message" id="changeCard">
                             Change Cards
                         </button>
                     </div>
@@ -179,12 +180,15 @@
 
 <div style="position: relative; left: 50%; float: left;">
     <!-- Download links -->
-    <img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />
-    <img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />
-    <img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />
+    <a href="/resources/downloads/politestare-win.zip" style="position: relative; left: -50%;">
+        <img style="position: relative;" src="/resources/images/windows.png">
+        <div style="text-align: center; color: rgb(138, 155, 184);">Download Me!</div>
+    </a>
+    <!--<img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />-->
+    <!--<img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />-->
 </div>
-
-
+<br>
+<br>
 <br>
 <br>
 <br>
@@ -340,6 +344,64 @@
             return false;
         });
     });
+</script>
+<script type="text/javascript" src="https://js.stripe.com/v1/"></script>
+<script type="text/javascript">
+
+    $(document).ready(function(){
+        Stripe.setPublishableKey('pk_live_kAsQAcfWazWM0r2GBRIe7PX4');
+
+        var stripeResponseHandler = function(status, response) {
+            var $form = $('form[name="payment-form"]');
+
+            if (response.error) {
+                // Show the errors on the form
+                $form.find('.error').text(response.error.message);
+                $form.find('button').prop('disabled', false);
+            } else {
+                // token contains id, last4, and card type
+                var token = response.id;
+                // Insert the token into the form so it gets submitted to the server
+
+                $form.append($('<input type="hidden" name="stripeToken" />').val(token));
+                // and re-submit
+                $form.submit();
+            }
+        };
+
+        $('#changePassword').click(function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var $form = $(this).closest('form');
+
+            // Disable the submit button to prevent repeated clicks
+            $form.find('button').prop('disabled', true);
+
+            $form.submit();
+
+            setTimeout(function() {
+                $form.find('button').prop('disabled', false);
+            }, 5000);
+
+            // Prevent the form from submitting with the default action
+            return false;
+        });
+    });
+
+    $('#changeCard').click(function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        var $form = $(this).closest('form');
+
+        // Disable the submit button to prevent repeated clicks
+        $form.find('button').prop('disabled', true);
+
+        Stripe.card.createToken($form, stripeResponseHandler);
+
+        // Prevent the form from submitting with the default action
+        return false;
+    });
+
 </script>
 </body>
 

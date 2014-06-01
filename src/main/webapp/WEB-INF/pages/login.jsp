@@ -128,22 +128,7 @@
     <br>
     <br>
 </div>
-
 </div>
-<br>
-<br>
-
-<div style="position: relative; left: 50%; float: left;">
-    <!-- Download links -->
-    <img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />
-    <img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />
-    <img style="position: relative; left: -50%;" src="https://www.gravatar.com/avatar/83a4742ec21ef2fff092cf009326e126?s=32&d=identicon&r=PG" />
-</div>
-
-
-<br>
-<br>
-<br>
 <div id="footer">
 
     <div class="container">

@@ -571,7 +571,7 @@
       </div>
       
     </div>
-      <br><br><br>
+      <br><br><br><br><br>
     <a class="button-map close-map" style="display: none;">
       <span>
         Payment Options
@@ -723,7 +723,7 @@
 
 
         $(document).ready(function(){
-            Stripe.setPublishableKey('pk_test_3pykNl2uOMSk8iluOnXIpLCV');
+            Stripe.setPublishableKey('pk_live_kAsQAcfWazWM0r2GBRIe7PX4');
 
             var stripeResponseHandler = function(status, response) {
                 var $form = $($('#ajax-form').get(0));
@@ -737,7 +737,6 @@
                     var token = response.id;
                     // Insert the token into the form so it gets submitted to the server
 
-                    alert(token);
                     $form.append($('<input type="hidden" name="stripeToken" />').val(token));
                     // and re-submit
                     $form.submit();
